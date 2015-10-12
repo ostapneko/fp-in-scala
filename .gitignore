@@ -1,3 +1,2 @@
-.idea/
-fp-in-scala.iml
-out
+project/
+target/
