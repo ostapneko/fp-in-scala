@@ -43,4 +43,88 @@ object Chapter4 {
       x2 <- b
     } yield f(x1, x2)
   }
+
+  def sequence[A](as: List[Option[A]]): Option[List[A]] = as.foldRight[Option[List[A]]](Some(Nil)) { (a, acc) =>
+    map2(a, acc) { _ :: _ }
+  }
+
+  def traverse[A, B](as: List[A])(f: A => Option[B]): Option[List[B]] = as.foldLeft[Option[List[B]]](Some(Nil)) { (accOpt, a) =>
+    val reversed = for {
+      acc <- accOpt
+      b <- f(a)
+    } yield b :: acc
+
+    reversed.map(_.reverse)
+  }
+
+  trait Either[+E, +A] {
+    def map[B](f: A => B): Either[E, B] = this match {
+      case Right(x) => Right(f(x))
+      case Left(e) => Left(e)
+    }
+
+    def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = this match {
+      case Right(x) => f(x)
+      case Left(e) => Left(e)
+    }
+
+    def orElse[EE >: E,B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
+      case Right(x) => Right(x)
+      case _ => b
+    }
+
+    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] =
+      for {
+        x1 <- this
+        x2 <- b
+      } yield f(x1, x2)
+  }
+  case class Left[+E](value: E) extends Either[E, Nothing]
+  case class Right[+A](value: A) extends Either[Nothing, A]
+
+  def sequence[E, A](es: List[Either[E, A]]): Either[E, List[A]] = es.foldRight[Either[E, List[A]]](Right(Nil)) { (a, acc) =>
+    a.map2(acc) { _ :: _ }
+  }
+
+
+  def traverse[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = as.foldLeft[Either[E, List[B]]](Right(Nil)) { (accOpt, a) =>
+    val reversed = for {
+      acc <- accOpt
+      b <- f(a)
+    } yield b :: acc
+
+    reversed.map(_.reverse)
+  }
+
+  case class Person(name: Name, age: Age)
+  sealed class Name(val value: String)
+  sealed class Age(val value: Int)
+
+  trait Validation[+E, +A] {
+    def map[B](f: A => B): Validation[E, B] = this match {
+      case VSuccess(x) => VSuccess(f(x))
+      case VError(es) => VError(es)
+    }
+
+    def flatMap[EE >: E, B](f: A => Validation[EE, B]): Validation[EE, B] = this match {
+      case VSuccess(x) => f(x)
+      case VError(es) => VError(es)
+    }
+
+    def orElse[EE >: E,B >: A](b: => Validation[EE, B]): Validation[EE, B] = this match {
+      case VSuccess(x) => VSuccess(x)
+      case _ => b
+    }
+
+    def map2[EE >: E, B, C](b: Validation[EE, B])(f: (A, B) => C): Validation[EE, C] =
+      (this, b) match {
+        case (VSuccess(x1), VSuccess(x2)) => VSuccess(f(x1, x2))
+        case (VSuccess(_), VError(es)) => VError(es)
+        case (VError(es), VSuccess(_)) => VError(es)
+        case (VError(es1), VError(es2)) => VError(es1 ++ es2)
+      }
+  }
+
+  case class VError[+E](errors: List[E]) extends Validation[E, Nothing]
+  case class VSuccess[+A](value: A) extends Validation[Nothing, A]
 }
