@@ -1,3 +1,5 @@
+package fp
+
 import org.scalatest.FreeSpec
 
 class Chapter4Test extends FreeSpec {

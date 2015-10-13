@@ -1,3 +1,5 @@
+package fp
+
 import scala.annotation.tailrec
 
 object Chapter3 {

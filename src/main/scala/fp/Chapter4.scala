@@ -1,3 +1,5 @@
+package fp
+
 object Chapter4 {
   trait Option[+A] {
     def map[B](f: A => B): Option[B]
@@ -82,12 +84,12 @@ object Chapter4 {
   case class Left[+E](value: E) extends Either[E, Nothing]
   case class Right[+A](value: A) extends Either[Nothing, A]
 
-  def sequence[E, A](es: List[Either[E, A]]): Either[E, List[A]] = es.foldRight[Either[E, List[A]]](Right(Nil)) { (a, acc) =>
+  def sequenceEither[E, A](es: List[Either[E, A]]): Either[E, List[A]] = es.foldRight[Either[E, List[A]]](Right(Nil)) { (a, acc) =>
     a.map2(acc) { _ :: _ }
   }
 
 
-  def traverse[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = as.foldLeft[Either[E, List[B]]](Right(Nil)) { (accOpt, a) =>
+  def traverseEither[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = as.foldLeft[Either[E, List[B]]](Right(Nil)) { (accOpt, a) =>
     val reversed = for {
       acc <- accOpt
       b <- f(a)

@@ -1,3 +1,5 @@
+package fp
+
 object Chapter2 {
   def fib(n: Int): Int = {
     def fib2(n1: Int, n2: Int, p: Int): Int = {
